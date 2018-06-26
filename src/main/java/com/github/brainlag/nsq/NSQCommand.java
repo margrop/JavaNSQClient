@@ -99,6 +99,10 @@ public class NSQCommand {
         return NSQCommand.instance("PUB " + topic, message);
     }
 
+    public static NSQCommand deferPublish(String topic, long ms, byte[] message) {
+        return NSQCommand.instance("DPUB " + topic + " " + ms, message);
+    }
+
     // MultiPublish creates a new Command to write more than one message to a given topic
     // (useful for high-throughput situations to avoid roundtrips and saturate the pipe)
     // Note: can only be used with more than 1 bodies!

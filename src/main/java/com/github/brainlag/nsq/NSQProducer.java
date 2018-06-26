@@ -103,6 +103,28 @@ public class NSQProducer {
         }
     }
 
+    public void deferProduce(String topic, long ms, byte[] message) throws NSQException, TimeoutException {
+        if (!started) {
+            throw new IllegalStateException("Producer must be started before producing messages!");
+        }
+        Connection c = getConnection();
+        try {
+            NSQCommand command = NSQCommand.deferPublish(topic, ms, message);
+            NSQFrame frame = c.commandAndWait(command);
+            if (frame != null && frame instanceof ErrorFrame) {
+                String err = ((ErrorFrame) frame).getErrorMessage();
+                if (err.startsWith("E_BAD_TOPIC")) {
+                    throw new BadTopicException(err);
+                }
+                if (err.startsWith("E_BAD_MESSAGE")) {
+                    throw new BadMessageException(err);
+                }
+            }
+        } finally {
+            pool.returnObject(c.getServerAddress(), c);
+        }
+    }
+
     public void produce(String topic, byte[] message) throws NSQException, TimeoutException {
         if (!started) {
             throw new IllegalStateException("Producer must be started before producing messages!");
